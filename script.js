@@ -2,17 +2,12 @@ import { mockData } from "./mockData.js";
 const parentElement = document.querySelector(".driverCardsContainer");
 const cardContainer = document.createElement("div");
 cardContainer.className = "driverCardsContent";
-const increasePoints = (button) => {
-  button.addEventListener("click", () => console.log("ola ola"));
-};
+
 const filterDriverInfo = (array, toFind, teamColor) => {
-  // takes the argumnet array from main function and searches for thtat specific information
+  // takes the argument array from main function and searches for thtat specific information
   let filteredInfo = [];
   for (let i = 0; i <= toFind.length - 1; i++) {
     filteredInfo.push(array.filter((el) => el[0] === toFind[i]));
-    if (filteredInfo[i][0].includes("points")) {
-      // console.log("hello");
-    }
     if (
       filteredInfo[i][0].includes("firstName") && // For Name and FirstName to create a new container to position everything corectly
       filteredInfo[i][0].includes("lastName")
@@ -43,7 +38,6 @@ const driverDetails = (entries, toFind, teamColor) => {
   const driverImageContainer = document.createElement("div");
   driverImageContainer.className = "driverLook";
   driverInfo.className = "driverInfo";
-  console.log(teamColor);
   filterDriverInfo(entries, toFind, teamColor).map((el) => {
     if (el.className === "firstName" || el.className === "lastName") {
       // condition to append differently the elements and add specific colors for each driver
@@ -60,17 +54,15 @@ const driverDetails = (entries, toFind, teamColor) => {
       pointsContainer.append(label);
       driverInfo.append(pointsContainer);
       buttonsContainer.classList = "buttons-container";
-      increasePts.className = "button increase";
-      decreasePts.className = "button decrease";
+      increasePts.id = "increase";
+      decreasePts.id = "decrease";
+      increasePts.className = "button";
+      decreasePts.className = "button";
       buttonsContainer.append(increasePts);
       buttonsContainer.append(decreasePts);
       driverInfo.append(buttonsContainer);
-      increasePts.addEventListener("click", (e) =>
-        console.log(e.target.closest("pointsContainer"))
-      );
     } else if (el.className === "image") {
       //if image must create new container
-
       driverImage.src = el.textContent;
       driverImage.className = "driverImage";
       driverImageContainer.append(driverImage);
@@ -80,53 +72,79 @@ const driverDetails = (entries, toFind, teamColor) => {
       el.style.color = `var(--${teamColor}-color)`;
     } else driverInfo.append(el);
   });
-  let prevPoints, newPoints;
-
-  console.log(prevPoints, newPoints);
-  console.log(entries);
   return driverInfo;
 };
 
-const content = mockData
-  .sort((a, b) => b.points - a.points)
-  .map((data, id) => {
-    console.log(data.number);
-    const teamNameColor = data.team.toLowerCase().replaceAll(" ", "");
-    data.rank = id + 1;
-    const driverInformationsEntries = Object.entries(data);
-    const driverCard = document.createElement("div");
-    driverCard.id = data.number;
-    driverCard.className = "driverCard";
-    driverCard.style.borderColor = `--${teamNameColor}-color`;
-    driverCard.append(
-      driverDetails(driverInformationsEntries, ["points", "rank"])
-    );
-    driverCard.append(
-      driverDetails(
-        driverInformationsEntries,
-        ["firstName", "lastName", "country"],
-        teamNameColor
-      )
-    );
-    driverCard.append(driverDetails(driverInformationsEntries, ["team"]));
-    driverCard.append(
-      driverDetails(
-        driverInformationsEntries,
-        ["image", "number"],
-        teamNameColor
-      )
-    );
-    driverCard.addEventListener("mouseenter", (e) => {
-      console.log(e);
-      driverCard.style.borderColor = `var(--${teamNameColor}-color)`;
+const content = (data) =>
+  data
+    .sort((a, b) => b.points - a.points)
+    .map((data, id) => {
+      const teamNameColor = data.team.toLowerCase().replaceAll(" ", "");
+      data.rank = id + 1;
+      const driverInformationsEntries = Object.entries(data);
+      const driverCard = document.createElement("div");
+      driverCard.id = data.number;
+      driverCard.className = "driverCard";
+      driverCard.style.borderColor = `--${teamNameColor}-color`;
+      driverCard.append(
+        driverDetails(driverInformationsEntries, ["points", "rank"])
+      );
+      driverCard.append(
+        driverDetails(
+          driverInformationsEntries,
+          ["firstName", "lastName", "country"],
+          teamNameColor
+        )
+      );
+      driverCard.append(driverDetails(driverInformationsEntries, ["team"]));
+      driverCard.append(
+        driverDetails(
+          driverInformationsEntries,
+          ["image", "number"],
+          teamNameColor
+        )
+      );
+      driverCard.addEventListener("mouseenter", () => {
+        driverCard.style.borderColor = `var(--${teamNameColor}-color)`;
+      });
+      driverCard.addEventListener("mouseleave", () => {
+        driverCard.style.borderColor = "var(--defaultColor-)";
+      });
+      return driverCard;
     });
-    driverCard.addEventListener("mouseleave", () => {
-      driverCard.style.borderColor = "var(--defaultColor-)";
+let newAllTargetsContainer;
+const oldContent = content(mockData);
+const renderElements = (content) => {
+  content.map((card) => {
+    parentElement.append(card);
+    card.addEventListener("click", (e) => {
+      const driverPoints = Number(
+        e.target.closest(".driverInfo").querySelector(".points").textContent
+      );
+      const newPoints =
+        e.target.id === "increase" && e.target.id
+          ? driverPoints + 10
+          : e.target.id === "decrease"
+          ? driverPoints - 10
+          : driverPoints;
+
+      e.target.closest(".driverInfo").querySelector(".points").textContent =
+        newPoints;
+      const allTargetsContainer = e.target
+        .closest(".driverCardsContainer")
+        .querySelectorAll(".driverCard");
+      const target = e.target.closest(".driverCard");
+      newAllTargetsContainer = Array.from(allTargetsContainer).sort(
+        (a, b) =>
+          Number(b.querySelector(".points").textContent) -
+          Number(a.querySelector(".points").textContent)
+      );
+      parentElement.innerHTML = "";
+      return Array.from(newAllTargetsContainer).map((newCard, index) => {
+        parentElement.append(newCard);
+        return (newCard.querySelector(".rank").textContent = index + 1);
+      });
     });
-    driverCard.addEventListener("click", () => console.log(driverCard.id));
-    return driverCard;
   });
-console.log(content);
-content.map((card) => {
-  parentElement.append(card);
-});
+};
+renderElements(oldContent);

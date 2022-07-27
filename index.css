@@ -131,18 +131,18 @@ body {
   justify-content: center;
   right: 0px;
 }
-.button.increase {
+#increase {
   background-color: red;
   color: white;
   order: -1;
 }
-.button.increase::after {
+#increase::after {
   content: "+";
   font-weight: 600;
   font-size: 1.5em;
 }
 
-.button.decrease::after {
+#decrease::after {
   content: "-";
   font-weight: 600;
   font-size: 1.5em;
